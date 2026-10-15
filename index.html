@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#FFF6EC">
+<title>你最适合养什么猫？</title>
+<style>
+:root{--bg:#FFF6EC;--card:#fff;--main:#E8916B;--deep:#C96F4A;--dark:#5A3A2E;--soft:#FDE6D6;--lighter:#FFF0E4;--border:#F3D5C0;--muted:#8A6E62;--light:#B9A196;--bar:#F0A07C;--sb:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;font-family:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--dark);line-height:1.6;overflow-x:hidden}
+body{max-width:430px;margin:0 auto}
+.screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
+#start{padding:40px 24px 32px;align-items:center;justify-content:center;text-align:center;background:linear-gradient(180deg,#FFF8F0,#FFEBDC)}
+.start-cat{width:200px;height:200px;margin-bottom:8px}
+.start-label{font-size:13px;color:var(--main);letter-spacing:2px;margin-bottom:8px}
+h1{font-size:32px;line-height:1.3;color:var(--dark);margin-bottom:10px}
+h1 .hl{background:linear-gradient(transparent 60%,#FFD9A8 60%);padding:0 2px}
+.desc{font-size:14px;color:var(--muted);margin-bottom:20px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
+.pill{padding:5px 12px;border-radius:20px;background:var(--soft);color:var(--deep);font-size:12px}
+.btn-primary{width:100%;max-width:300px;padding:16px;border:none;border-radius:28px;background:linear-gradient(135deg,#F2A27E,#E07F57);color:#fff;font-size:17px;font-weight:600;font-family:inherit;box-shadow:0 6px 20px rgba(224,127,87,.35);cursor:pointer}
+.btn-primary:active{transform:scale(.97)}
+.hint{margin-top:16px;font-size:12px;color:var(--light)}
+.qh{padding:16px 20px 12px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.qrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qback{background:none;border:none;color:var(--muted);font-size:14px;font-family:inherit;cursor:pointer}
+.qprog{font-size:13px;color:var(--main);font-weight:600}
+.track{height:6px;background:var(--soft);border-radius:3px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#F2A27E,#E07F57);transition:width .3s}
+.qbody{padding:24px 20px}
+.qemoji{font-size:40px;margin-bottom:6px}
+.qno{font-size:12px;color:var(--main);font-weight:600;letter-spacing:1px;margin-bottom:8px}
+.qtext{font-size:20px;font-weight:600;line-height:1.45;margin-bottom:24px}
+.opts{display:flex;flex-direction:column;gap:12px}
+.opt{padding:16px 18px;background:#fff;border:1.5px solid var(--border);border-radius:16px;font-size:15px;color:var(--dark);text-align:left;font-family:inherit;cursor:pointer;line-height:1.5}
+.opt.sel,.opt:active{border-color:var(--main);background:var(--lighter);color:var(--deep)}
+#loading{align-items:center;justify-content:center;text-align:center}
+.loader{width:40px;height:40px;border:3px solid var(--soft);border-top-color:var(--main);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 18px}@keyframes sp{to{transform:rotate(360deg)}}
+#result{padding-bottom:calc(84px + var(--sb))}
+.rtop{padding:14px 16px;background:#fff;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;font-size:14px;font-weight:600}
+.rtop span:last-child{font-weight:400;color:var(--light);font-size:12px}
+.wrap{overflow:hidden;width:100%;touch-action:pan-y}
+.slides{display:flex;width:100%;transition:transform .35s cubic-bezier(.25,.8,.25,1)}
+.slide{flex:0 0 100%;width:100%;padding:18px 16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px 18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(224,127,87,.08)}
+.st{font-size:15px;font-weight:700;margin-bottom:12px}.st b{color:var(--main)}
+.portrait{width:190px;height:190px;display:block;margin:0 auto 4px}
+.pct{font-size:52px;font-weight:700;color:var(--main);text-align:center;line-height:1.1}
+.bname{font-size:28px;font-weight:700;text-align:center;margin:4px 0 2px}
+.tagline{font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px}
+.tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.tag{padding:5px 14px;border-radius:20px;background:var(--lighter);color:var(--deep);font-size:13px;font-weight:500}
+.p{font-size:14px;color:var(--muted);line-height:1.75}
+.li{background:#FFFAF5;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.li b{display:block;color:var(--dark);font-size:14px;margin-bottom:4px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bl{width:56px;font-size:13px;font-weight:500}.bt{flex:1;height:10px;background:var(--soft);border-radius:5px;overflow:hidden}.bf{height:100%;background:var(--bar);border-radius:5px;width:0;transition:width .8s}
+.bs{width:46px;text-align:right;font-size:12px;color:var(--deep);font-weight:600}
+.speech{background:var(--lighter);border-radius:16px 16px 16px 4px;padding:12px 14px;margin-bottom:10px;font-size:14px;font-weight:500}
+.swh{text-align:center;font-size:12px;color:var(--light)}
+.dots{display:flex;justify-content:center;gap:7px;padding:8px 0 12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .25s}.dot.on{background:var(--main);width:18px;border-radius:4px}
+.acts{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:12px 12px calc(12px + var(--sb));background:rgba(255,255,255,.95);border-top:1px solid var(--border);display:flex;gap:8px;z-index:20}
+.acts button{flex:1;padding:13px 4px;border-radius:24px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer}
+.bo{border:1.5px solid var(--main);background:#fff;color:var(--deep)}.bp{border:none;background:linear-gradient(135deg,#F2A27E,#E07F57);color:#fff}
+.ov{position:fixed;inset:0;background:rgba(60,35,25,.88);z-index:200;display:none;flex-direction:column;align-items:center;padding:16px 16px calc(16px + var(--sb));overflow-y:auto}
+.ov.show{display:flex}.ov img{width:100%;max-width:400px;border-radius:12px}
+.ovh{color:#fff;font-size:14px;margin:8px 0 12px}
+.ovb{display:flex;gap:10px;width:100%;max-width:400px;margin-top:12px}.ovb button{flex:1;padding:12px;border:none;border-radius:22px;font-size:15px;font-weight:600;font-family:inherit}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(90,58,46,.9);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<section id="start" class="screen active">
+  <div class="start-cat" id="startCat"></div>
+  <div class="start-label">猫咪匹配测试</div>
+  <h1>你最适合养<br><span class="hl">什么猫</span>？</h1>
+  <p class="desc">根据你的作息、住房和性格<br>找到和你最合拍的那只喵</p>
+  <div class="pills"><span class="pill">15 道轻松小题</span><span class="pill">10 种猫咪</span><span class="pill">约 2 分钟</span></div>
+  <button class="btn-primary" id="btnStart">开始测试</button>
+  <p class="hint">单选 · 没有标准答案 · 结果可左右滑动</p>
+</section>
+<section id="quiz" class="screen">
+  <div class="qh"><div class="qrow"><button class="qback" id="qback">← 上一题</button><span class="qprog" id="qprog"></span></div><div class="track"><div class="fill" id="fill"></div></div></div>
+  <div class="qbody"><div class="qemoji" id="qemoji"></div><div class="qno" id="qno"></div><div class="qtext" id="qtext"></div><div class="opts" id="opts"></div></div>
+</section>
+<section id="loading" class="screen"><div class="loader"></div><div style="font-weight:600;color:var(--deep)">正在为你挑选猫主子…</div><div style="font-size:13px;color:var(--light);margin-top:6px">喵星人正在审核你的铲屎官资格</div></section>
+<section id="result" class="screen">
+  <div class="rtop"><span>你的本命猫咪</span><span id="ind">1 / 5</span></div>
+  <div class="wrap" id="wrap"><div class="slides" id="slides"></div></div>
+  <p class="swh">← 左右滑动查看完整结果 →</p>
+  <div class="dots" id="dots"></div>
+  <div class="acts"><button class="bo" id="btnRetry">再测一次</button><button class="bo" id="btnCopy">复制文案</button><button class="bp" id="btnImg">生成分享图</button></div>
+</section>
+<div class="ov" id="ov"><div class="ovh">长按图片保存，或点击下载</div><img id="shareImg" alt="分享图"><div class="ovb"><button id="btnDl" style="background:#fff;color:var(--deep)">下载</button><button id="btnClose" style="background:rgba(255,255,255,.18);color:#fff">关闭</button></div></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ===== CAT SVG ===== */
+// c: {base, dark, accent, pattern, ears, longFur, flat, eye, nose, hairless, white}
+function catSVG(c){
+  const s=[];
+  const B=c.base, D=c.dark||c.base, E=c.eye, N=c.nose||'#F4A6A6';
+  s.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">');
+  s.push('<circle cx="100" cy="108" r="88" fill="'+(c.bg||'#FFE9D8')+'"/>');
+  // body
+  s.push('<ellipse cx="100" cy="170" rx="58" ry="34" fill="'+B+'"/>');
+  if(c.white) s.push('<ellipse cx="100" cy="172" rx="30" ry="26" fill="#FFFFFF"/>');
+  const fw=c.flat?64:58, fh=c.flat?52:54;
+  // fluffy ruff
+  if(c.longFur){let r='';for(let k=0;k<18;k++){const a=k/18*Math.PI*2;r+='<circle cx="'+(100+Math.cos(a)*(fw+4)).toFixed(1)+'" cy="'+(108+Math.sin(a)*(fh+4)).toFixed(1)+'" r="13" fill="'+B+'"/>';}s.push(r);}
+  // ears
+  const ear=(side)=>{const m=side<0?1:-1;let o,t,i;
+    if(c.ears==='fold'){return '<path d="M'+(100+side*30)+' 62 Q'+(100+side*50)+' 50 '+(100+side*58)+' 68 Q'+(100+side*46)+' 70 '+(100+side*36)+' 74 Z" fill="'+D+'"/>';}
+    if(c.ears==='big'){o=[100+side*22,70];t=[100+side*70,18];i=[100+side*64,82];}
+    else if(c.ears==='small'){o=[100+side*28,62];t=[100+side*54,40];i=[100+side*58,74];}
+    else {o=[100+side*24,64];t=[100+side*60,26];i=[100+side*62,80];}
+    let r='<path d="M'+o+' L'+t+' L'+i+' Z" fill="'+(c.earColor||D)+'" stroke="'+(c.earColor||D)+'" stroke-width="6" stroke-linejoin="round"/>';
+    const ci=[(o[0]*2+t[0]*3+i[0]*2)/7,(o[1]*2+t[1]*3+i[1]*2)/7];
+    r+='<path d="M'+[(o[0]+ci[0])/2,(o[1]+ci[1])/2+4]+' L'+[(t[0]+ci[0]*2)/3,(t[1]+ci[1]*2)/3]+' L'+[(i[0]+ci[0])/2,(i[1]+ci[1])/2]+' Z" fill="#F7B9B4"/>';
+    if(c.ears==='tufted') r+='<path d="M'+t+' l'+(side*-4)+' -14 l'+(side*6)+' 8 l'+(side*2)+' -12 l'+(side*2)+' 14" stroke="'+D+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return r;};
+  s.push(ear(-1),ear(1));
+  // head
+  s.push('<ellipse cx="100" cy="108" rx="'+fw+'" ry="'+fh+'" fill="'+B+'"/>');
+  // patterns
+  if(c.pattern==='point') s.push('<ellipse cx="100" cy="122" rx="'+(c.white?26:36)+'" ry="'+(c.white?26:34)+'" fill="'+D+'" opacity="0.85"/>');
+  if(c.pattern==='ragdoll'){s.push('<path d="M60 92 Q100 70 140 92 Q138 130 100 128 Q62 130 60 92Z" fill="'+D+'" opacity="0.75"/>');s.push('<path d="M100 92 L84 140 Q100 150 116 140 Z" fill="#FFFFFF"/>');}
+  if(c.pattern==='tabby'||c.pattern==='mackerel'){const st=c.stripe||D;
+    s.push('<path d="M86 64 L90 82 M100 60 L100 80 M114 64 L110 82" stroke="'+st+'" stroke-width="5" stroke-linecap="round"/>');
+    s.push('<path d="M'+(100-fw+4)+' 104 l18 3 M'+(100-fw+6)+' 116 l16 0 M'+(100+fw-4)+' 104 l-18 3 M'+(100+fw-6)+' 116 l-16 0" stroke="'+st+'" stroke-width="4" stroke-linecap="round"/>');
+    s.push('<path d="M50 162 q6 8 4 18 M62 152 q6 10 4 22 M150 162 q-6 8 -4 18 M138 152 q-6 10 -4 22" stroke="'+st+'" stroke-width="4" fill="none" stroke-linecap="round"/>');}
+  if(c.pattern==='orange'){s.push('<path d="M88 64 L91 80 M100 60 L100 78 M112 64 L109 80" stroke="'+D+'" stroke-width="5" stroke-linecap="round"/>');s.push('<ellipse cx="100" cy="128" rx="26" ry="18" fill="#FFF3E2"/>');}
+  if(c.muzzle) s.push('<ellipse cx="100" cy="128" rx="24" ry="16" fill="'+c.muzzle+'"/>');
+  if(c.hairless){s.push('<path d="M82 74 q18 -6 36 0 M86 82 q14 -4 28 0" stroke="'+D+'" stroke-width="2.5" fill="none" stroke-linecap="round"/>');}
+  // eyes
+  const ey=c.flat?108:104, ex=c.flat?24:22, er=c.eyeR||11;
+  [-1,1].forEach(sd=>{const x=100+sd*ex;
+    s.push('<ellipse cx="'+x+'" cy="'+ey+'" rx="'+er+'" ry="'+(er+1)+'" fill="'+E+'"/>');
+    s.push('<ellipse cx="'+x+'" cy="'+(ey+1)+'" rx="'+(er*0.45)+'" ry="'+(er*0.8)+'" fill="#2B1D16"/>');
+    s.push('<circle cx="'+(x+3)+'" cy="'+(ey-4)+'" r="3.5" fill="#fff"/><circle cx="'+(x-3)+'" cy="'+(ey+4)+'" r="1.6" fill="#fff"/>');});
+  // blush
+  s.push('<ellipse cx="'+(100-fw+16)+'" cy="'+(ey+18)+'" rx="9" ry="5" fill="#FF9AA2" opacity="0.45"/><ellipse cx="'+(100+fw-16)+'" cy="'+(ey+18)+'" rx="9" ry="5" fill="#FF9AA2" opacity="0.45"/>');
+  // nose & mouth
+  const ny=c.flat?120:122;
+  s.push('<path d="M95 '+ny+' L105 '+ny+' L100 '+(ny+6)+' Z" fill="'+N+'" stroke="'+N+'" stroke-width="2" stroke-linejoin="round"/>');
+  s.push('<path d="M100 '+(ny+6)+' q-5 7 -11 3 M100 '+(ny+6)+' q5 7 11 3" stroke="#6B4A3E" stroke-width="2.2" fill="none" stroke-linecap="round"/>');
+  // whiskers
+  const wc=c.whisker||'#C9B3A8';
+  if(!c.hairless) s.push('<path d="M76 124 L46 118 M76 129 L46 132 M124 124 L154 118 M124 129 L154 132" stroke="'+wc+'" stroke-width="1.8" stroke-linecap="round"/>');
+  // paws
+  s.push('<ellipse cx="80" cy="186" rx="13" ry="8" fill="'+(c.paw||B)+'"/><ellipse cx="120" cy="186" rx="13" ry="8" fill="'+(c.paw||B)+'"/>');
+  s.push('</svg>');
+  return s.join('');
+}
+const svgURL=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+
+/* ===== DATA ===== */
+// user dims: 活力 粘人 打理 预算 空间 陪伴 新手友好(需求) 低敏
+const DIMS=['活力','粘人','打理','预算','空间','陪伴'];
+const BARS=['饲养难度','活力指数','粘人程度','掉毛程度'];
+const CATS=[
+ {id:'bsh',name:'英国短毛猫',tagline:'圆脸蓝胖子 · 佛系室友',tags:['温顺','独立','圆滚滚'],
+  art:{base:'#8E9AAF',dark:'#7A869B',eye:'#F2A541',nose:'#9C8A9A',muzzle:'#9AA6BA',bg:'#E6ECF5',whisker:'#D7DEEA'},
+  ideal:{活力:3,粘人:4,打理:5,预算:6,空间:4,陪伴:4},bars:[35,35,45,65],
+  why:'你喜欢有陪伴感但不黏糊的关系。英短安静、好脾气，你忙的时候它自己找个角落睡，你回家它慢悠悠过来蹭一下，刚刚好。',
+  daily:'每天两顿定量饭、一次梳毛、几分钟逗猫棒。大部分时间它都在窗台或沙发上当一颗蓝色团子。',
+  care:'容易发胖，要控制零食和饭量；季节性掉毛明显，备好梳子和吸尘器。部分个体有心脏病（HCM）风险，建议定期体检。',
+  lines:['你忙你的，我就在旁边看着你。','摸头可以，抱抱要看心情。','今天的罐头，是不是忘了？']},
+ {id:'ragdoll',name:'布偶猫',tagline:'仙女猫 · 软乎乎的粘人精',tags:['温柔','黏人','颜值担当'],
+  art:{base:'#FBF4EA',dark:'#9C7B65',eye:'#5DA9E9',pattern:'ragdoll',longFur:true,earColor:'#9C7B65',bg:'#FFEFE3',paw:'#FFFFFF'},
+  ideal:{活力:4,粘人:9,打理:8,预算:9,空间:6,陪伴:9},bars:[70,45,95,80],
+  why:'你在家时间多、愿意投入感情和预算。布偶会跟着你从客厅走到卧室，抱起来软得像一团云，适合想被需要的你。',
+  daily:'每天梳毛防打结，陪玩 20 分钟以上，吃得精一点。它会在门口等你回家。',
+  care:'价格和日常开销都偏高；长毛需要勤梳；肠胃相对敏感，换粮要慢；也有心脏病风险，选择正规猫舍并定期体检。',
+  lines:['你去哪儿，我就跟到哪儿。','抱我，像抱一团棉花糖那样。','你一出门，我就开始想你了。']},
+ {id:'orange',name:'中华田园猫(橘猫)',tagline:'十橘九胖 · 好养的快乐源泉',tags:['亲人','皮实','吃货'],
+  art:{base:'#F4A259',dark:'#D9822B',eye:'#9BCB6B',pattern:'orange',bg:'#FFE8CF',paw:'#FFF3E2'},
+  ideal:{活力:6,粘人:7,打理:4,预算:3,空间:4,陪伴:6},bars:[25,60,70,55],
+  why:'你务实、随和，想要一只好相处又不娇气的伙伴。橘猫身体皮实、性格亲人，花销友好，非常适合第一次养猫。',
+  daily:'吃饭积极、睡觉积极、蹭你更积极。猫砂、猫粮、疫苗驱虫做到位，它就很开心。',
+  care:'特别容易胖，一定要控制食量；领养时记得做体检、疫苗和绝育。领养代替购买，很多救助站都有可爱的小橘。',
+  lines:['饭呢？我说的是第二顿。','我不是胖，是毛多。','有你在，哪里都是家。']},
+ {id:'asb',name:'美国短毛猫',tagline:'银色虎斑 · 阳光运动派',tags:['活泼','友善','好相处'],
+  art:{base:'#D6D9DE',dark:'#3F4652',eye:'#7CC36E',pattern:'tabby',stripe:'#4A515E',bg:'#EEF1F4',nose:'#E9A0A0'},
+  ideal:{活力:7,粘人:6,打理:4,预算:5,空间:5,陪伴:6},bars:[35,70,60,55],
+  why:'你开朗、家里热闹，可能还有小孩或别的宠物。美短适应力强、对人友好，玩得开也不记仇。',
+  daily:'每天来几轮扑扑乐，给它准备猫爬架和隧道。它会主动找你玩，也能自己找乐子。',
+  care:'精力旺盛，玩不够会拆家；也容易长胖。短毛但会掉毛，需要定期梳理。',
+  lines:['陪我玩，就现在！','我跑酷完了，该你夸我了。','新朋友？我先去闻闻。']},
+ {id:'siamese',name:'暹罗猫',tagline:'挖煤工 · 话痨小戏精',tags:['话多','聪明','超黏人'],
+  art:{base:'#F3E6D3',dark:'#5A4034',eye:'#4D9DE0',pattern:'point',ears:'big',earColor:'#5A4034',bg:'#FFF0E0',paw:'#5A4034'},
+  ideal:{活力:8,粘人:9,打理:3,预算:5,空间:5,陪伴:9},bars:[55,85,95,35],
+  why:'你喜欢互动、愿意和猫“聊天”。暹罗聪明、表达欲强，会回应你的每一句话，是最像狗的猫之一。',
+  daily:'它会全程参与你的生活：做饭时喵、工作时喵、上厕所也要在门口喵。需要大量陪伴和益智玩具。',
+  care:'怕孤单，长期独处容易焦虑；叫声较大，注意邻里。短毛好打理，但需要你的时间。',
+  lines:['喵——（翻译：你今天为什么不回我）','我不是吵，是在跟你汇报。','你是我最重要的听众。']},
+ {id:'maine',name:'缅因猫',tagline:'温柔巨人 · 毛茸茸的大狮子',tags:['大只','温和','聪明'],
+  art:{base:'#A0714F',dark:'#5C3B26',eye:'#E8B63E',pattern:'tabby',stripe:'#5C3B26',longFur:true,ears:'tufted',muzzle:'#F2E6D8',bg:'#F6E6D6'},
+  ideal:{活力:6,粘人:6,打理:8,预算:8,空间:9,陪伴:6},bars:[65,60,60,85],
+  why:'你家空间够大、喜欢有存在感的伙伴。缅因体型大但性格温和，像一位可靠的毛绒室友，对小孩和其他宠物也很包容。',
+  daily:'需要大号猫砂盆和结实的猫爬架，每周梳几次毛。它喜欢玩水，也喜欢跟着你巡视家里。',
+  care:'体型大，饭量和用品开销都更高；长毛要梳；关注髋关节和心脏健康。',
+  lines:['我只是看起来凶，其实超软的。','沙发分我一半，谢谢。','我长大了，但还是你的宝宝。']},
+ {id:'chinchilla',name:'金吉拉',tagline:'银色小公主 · 安静的精致派',tags:['安静','优雅','爱干净'],
+  art:{base:'#F7F7F5',dark:'#BFC3C8',eye:'#3FB37F',longFur:true,flat:true,ears:'small',nose:'#F29CA3',bg:'#EAF4EF',eyeR:13},
+  ideal:{活力:2,粘人:5,打理:9,预算:8,空间:3,陪伴:5},bars:[75,25,55,90],
+  why:'你生活规律、喜欢安静精致的氛围，也不介意花时间打理。金吉拉文静优雅，像家里一件会呼吸的艺术品。',
+  daily:'每天梳毛、擦眼睛，定期洗澡。它更喜欢安静地陪着你，不太会上蹿下跳。',
+  care:'长毛容易打结、掉毛多；脸型偏扁的个体易流泪、需要清理眼周。开销偏高，适合有耐心的人。',
+  lines:['请温柔地梳我的毛。','安静，才是我的高级感。','你在，我就很安心。']},
+ {id:'sphynx',name:'无毛猫(斯芬克斯)',tagline:'外星小暖炉 · 黏人小怪兽',tags:['不掉毛','超黏人','好奇'],
+  art:{base:'#EBC9B8',dark:'#C79C88',eye:'#9BD27A',ears:'big',hairless:true,nose:'#D98C8C',bg:'#F7E3EC',eyeR:12},
+  ideal:{活力:7,粘人:10,打理:6,预算:9,空间:4,陪伴:9},bars:[80,75,100,5],
+  why:'你介意掉毛、或家里有人对猫毛敏感，同时愿意给很多陪伴。无毛猫几乎不掉毛，摸起来像温暖的桃子，非常亲人。',
+  daily:'每周洗澡擦身，冬天要穿衣服保暖，夏天注意防晒。它会钻进你的被窝取暖。',
+  care:'“不掉毛”不等于不过敏——过敏原主要来自唾液和皮屑，过敏人群请先接触试试。皮肤油脂多需清洁，价格高，怕冷。',
+  lines:['我没有毛，但我有很多爱。','借你的被窝暖一暖。','别看我皱，我很可爱的。']},
+ {id:'lihua',name:'狸花猫',tagline:'本土小猎手 · 独立又靠谱',tags:['独立','健康','聪明'],
+  art:{base:'#B79B76',dark:'#4E3B2A',eye:'#C8D65B',pattern:'mackerel',stripe:'#4E3B2A',muzzle:'#E8D9C2',bg:'#F1E9D8'},
+  ideal:{活力:8,粘人:3,打理:3,预算:2,空间:5,陪伴:3},bars:[25,85,35,50],
+  why:'你经常忙碌或出差，希望猫咪能照顾好自己。狸花身体强健、独立聪明，不需要时时陪伴，却会在你回家时默默出现。',
+  daily:'给它足够的高处和玩具，自动喂食器和饮水机是好帮手。它会自己巡逻、自己玩。',
+  care:'精力旺盛、领地意识强，可能不太适合和别的猫挤在小空间里。封窗很重要！',
+  lines:['我能照顾好自己，你放心去忙。','这个家，由我来守护。','偶尔给你蹭一下，已经是最高礼遇。']},
+ {id:'exotic',name:'加菲猫(异国短毛猫)',tagline:'扁脸慵懒派 · 沙发土豆',tags:['慵懒','憨萌','安静'],
+  art:{base:'#E9A863',dark:'#C98440',eye:'#B5651D',pattern:'orange',flat:true,ears:'small',bg:'#FFE7CC',eyeR:13,paw:'#FFF3E2'},
+  ideal:{活力:2,粘人:6,打理:6,预算:7,空间:2,陪伴:6},bars:[60,20,60,60],
+  why:'你住得不大、喜欢宅家和慢节奏。加菲憨态可掬、爱睡觉，安静地陪你追剧是它最擅长的事。',
+  daily:'每天擦眼睛、梳梳毛，然后一起在沙发上躺平。它不太需要大运动量。',
+  care:'扁脸品种易有呼吸道和泪腺问题，怕热，要注意通风降温；挑选时关注健康和父母情况。',
+  lines:['今天也不想动呢。','躺平，是一种生活态度。','你追剧，我陪睡。']}
+];
+const START_CAT={base:'#F4A259',dark:'#D9822B',eye:'#7BC67B',pattern:'orange',bg:'#FFE1C7',paw:'#FFF3E2'};
+
+const Q=[
+ {e:'⏰',t:'你的日常作息更像？',o:[['早睡早起，非常规律',{活力:-1,陪伴:1}],['经常熬夜，夜猫子本猫',{活力:2}],['看情况，作息随缘',{}],['倒班或时间很不固定',{陪伴:-2,粘人:-1}]]},
+ {e:'🏠',t:'你现在的住房大概多大？',o:[['小单间 / 合租一间',{空间:-3}],['一室一厅 / 小两居',{空间:-1}],['两三居，空间还行',{空间:2}],['大房子，有很多可以跑的地方',{空间:4,活力:1}]]},
+ {e:'🛋️',t:'工作日你一般在家多久？',o:[['基本居家办公',{陪伴:4,粘人:2}],['早出晚归，晚上在家',{陪伴:0}],['经常加班，回家就睡',{陪伴:-3,粘人:-2}],['半居家，一周几天在家',{陪伴:2}]]},
+ {e:'💰',t:'每月愿意给猫花多少钱？',o:[['300 以内，够用就好',{预算:-3}],['300-600，正常水平',{预算:0}],['600-1000，想给它好一点',{预算:3}],['钱不是问题，猫开心最重要',{预算:5}]]},
+ {e:'🧹',t:'看到衣服沙发上都是猫毛，你会？',o:[['崩溃，最好一根都别掉',{打理:-2}],['能忍，粘毛器常备',{打理:1}],['无所谓，毛也是爱',{打理:3}],['我会每天给它梳毛，乐在其中',{打理:5}]]},
+ {e:'🎈',t:'你更喜欢哪种性格的猫？',o:[['安安静静的小淑女',{活力:-3}],['温和随和，偶尔玩一下',{活力:-1}],['活泼好动，每天都有节目',{活力:3}],['话多又调皮，像个小戏精',{活力:3,粘人:3}]]},
+ {e:'🤗',t:'你希望猫咪多黏你？',o:[['走哪跟哪，越黏越好',{粘人:4}],['想我了来找我就行',{粘人:1}],['各过各的，偶尔互动',{粘人:-3}],['我比较慢热，让它决定吧',{}]]},
+ {e:'👶',t:'家里有小孩或其他宠物吗？',o:[['有小朋友',{活力:1,粘人:1}],['有狗狗',{活力:2,空间:1}],['已经有别的猫',{粘人:-1}],['就我一个人（和未来的猫）',{}]]},
+ {e:'🤧',t:'你或家人对猫毛过敏吗？',o:[['完全不过敏',{打理:1}],['有点轻微敏感',{打理:-2}],['不确定，没试过',{}],['比较敏感，但真的很想养',{打理:-4,预算:1}]]},
+ {e:'✈️',t:'你出差或出远门的频率？',o:[['几乎不出门',{陪伴:2}],['偶尔，一年几次',{}],['经常，一个月好几次',{陪伴:-3,粘人:-2}],['会带上猫一起（如果可以）',{粘人:2}]]},
+ {e:'🛌',t:'理想的周末是？',o:[['宅家躺平追剧',{活力:-2,陪伴:1}],['出门逛逛，晚上回家',{}],['约朋友在家聚会',{活力:1}],['户外运动 / 说走就走',{活力:1,陪伴:-2}]]},
+ {e:'🐣',t:'你养猫的经验？',o:[['完全新手',{预算:-1,打理:-1}],['小时候家里养过',{}],['现在 / 以前自己养过',{打理:1}],['资深铲屎官',{打理:2,预算:1}]]},
+ {e:'🔊',t:'你能接受猫咪经常叫唤吗？',o:[['不行，邻居会投诉',{活力:-2,粘人:-1}],['偶尔叫叫可以',{}],['挺可爱的',{粘人:1}],['我会跟它对话的！',{粘人:3,活力:1}]]},
+ {e:'🎨',t:'你最心动的猫猫外形？',o:[['圆脸大眼，憨憨的',{活力:-1}],['长毛仙女，蓬蓬的',{打理:3,预算:1}],['修长优雅，眼神灵动',{活力:2}],['大只威风，像小狮子',{空间:2,打理:2}]]},
+ {e:'💛',t:'养猫，对你来说最重要的是？',o:[['有个安静的陪伴',{活力:-1,粘人:1}],['每天被治愈，被需要',{粘人:3,陪伴:1}],['省心好养，不添麻烦',{预算:-2,打理:-1,粘人:-1}],['给它最好的生活',{预算:3}]]}
+];
+
+/* ===== STATE ===== */
+let ans=[],qi=0,res=null,pct=0,si=0;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');scrollTo(0,0)}
+function renderQ(){const q=Q[qi];$('qprog').textContent=(qi+1)+' / '+Q.length;$('fill').style.width=((qi+1)/Q.length*100)+'%';
+ $('qemoji').textContent=q.e;$('qno').textContent='QUESTION '+String(qi+1).padStart(2,'0');$('qtext').textContent=q.t;$('qback').style.visibility=qi?'visible':'hidden';
+ $('opts').innerHTML='';q.o.forEach((o,i)=>{const b=document.createElement('button');b.className='opt'+(ans[qi]===i?' sel':'');b.textContent=o[0];b.onclick=()=>pick(i);$('opts').appendChild(b)})}
+function pick(i){ans[qi]=i;document.querySelectorAll('.opt').forEach((e,k)=>e.classList.toggle('sel',k===i));setTimeout(()=>{if(qi<Q.length-1){qi++;renderQ()}else finish()},200)}
+function compute(){
+ const u={};DIMS.forEach(d=>u[d]=5);
+ Q.forEach((q,i)=>{const o=q.o[ans[i]];if(o)Object.entries(o[1]).forEach(([d,w])=>u[d]+=w*0.6)});
+ DIMS.forEach(d=>u[d]=Math.max(0,Math.min(10,u[d])));
+ let best=null,bd=1e9;
+ CATS.forEach(c=>{let d=0;DIMS.forEach(k=>{d+=(u[k]-c.ideal[k])**2});
+   // allergy penalty: low 打理 tolerance favors sphynx
+   if(u['打理']<2.5&&c.id!=='sphynx'&&c.bars[3]>60)d+=6;
+   if(d<bd){bd=d;best=c}});
+ res=best;pct=Math.max(76,Math.min(98,Math.round(98-Math.sqrt(bd)*3.2)));
+}
+function finish(){show('loading');setTimeout(()=>{compute();renderR();show('result')},1300)}
+function renderR(){const c=res,svg=catSVG(c.art);
+ const bars=BARS.map((b,i)=>`<div class="bar-row"><span class="bl">${b}</span><div class="bt"><div class="bf" data-v="${c.bars[i]}"></div></div><span class="bs">${lvl(c.bars[i])}</span></div>`).join('');
+ $('slides').innerHTML=`
+ <div class="slide"><div class="card"><div class="portrait">${svg}</div><div class="pct">${pct}%</div><div class="bname">${c.name}</div><div class="tagline">${c.tagline}</div><div class="tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>
+  <div class="card"><div class="st"><b>01</b> · 适合你的理由</div><p class="p">${c.why}</p></div></div>
+ <div class="slide"><div class="card"><div class="st"><b>02</b> · 喵咪属性</div>${bars}</div><div class="card"><div class="st"><b>03</b> · 养它的日常</div><p class="p">${c.daily}</p></div></div>
+ <div class="slide"><div class="card"><div class="st"><b>04</b> · 需要注意</div><div class="li"><b>健康 / 打理 / 花费</b>${c.care}</div><div class="li"><b>通用小提醒</b>科学喂养、按时疫苗驱虫、封好窗户；领养代替购买，选择品种猫请认准正规猫舍。</div></div></div>
+ <div class="slide"><div class="card"><div class="st"><b>05</b> · 猫咪想对你说</div><div style="width:110px;height:110px;margin:0 auto 10px">${svg}</div>${c.lines.map(l=>`<div class="speech">“${l}”</div>`).join('')}</div></div>
+ <div class="slide"><div class="card" style="text-align:center"><div class="st">也和你有缘的猫咪</div><div style="display:flex;justify-content:space-around">${CATS.filter(x=>x!==c).slice(0,3).map(x=>`<div style="width:30%"><div style="width:84px;height:84px;margin:0 auto">${catSVG(x.art)}</div><div style="font-size:12px;color:var(--muted)">${x.name.replace(/\(.*\)/,'')}</div></div>`).join('')}</div>
+ <p class="p" style="margin-top:14px">无论最后选择哪一只，<br>愿你们彼此照顾，一起慢慢变老。</p></div></div>`;
+ document.querySelectorAll('.portrait svg,.slide svg').forEach(s=>{s.setAttribute('width','100%');s.setAttribute('height','100%')});
+ $('dots').innerHTML='';for(let i=0;i<5;i++){const d=document.createElement('div');d.className='dot';d.onclick=()=>go(i);$('dots').appendChild(d)}
+ go(0);setTimeout(()=>document.querySelectorAll('.bf').forEach(e=>e.style.width=e.dataset.v+'%'),100)}
+function lvl(v){return v<30?'低':v<55?'中':v<80?'较高':'高'}
+function go(i){si=Math.max(0,Math.min(4,i));$('slides').style.transform=`translateX(-${si*100}%)`;$('ind').textContent=(si+1)+' / 5';document.querySelectorAll('.dot').forEach((d,k)=>d.classList.toggle('on',k===si))}
+(function(){let x0=0,dx=0,md=false;const w=$('wrap');
+ w.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;dx=0},{passive:true});
+ w.addEventListener('touchmove',e=>{dx=e.touches[0].clientX-x0},{passive:true});
+ w.addEventListener('touchend',()=>{if(dx<-50)go(si+1);else if(dx>50)go(si-1)});
+ w.addEventListener('mousedown',e=>{md=true;x0=e.clientX});addEventListener('mouseup',e=>{if(!md)return;md=false;const d=e.clientX-x0;if(d<-50)go(si+1);else if(d>50)go(si-1)})})();
+function toast(m){$('toast').textContent=m;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2000)}
+const URL_='https://zengpenghui420-glitch.github.io/cat-quiz/';
+function copyText(){const c=res,t=`我测出最适合我养的猫是：${c.name}（匹配度 ${pct}%）\n${c.tagline}\n关键词：${c.tags.join(' · ')}\n它想对我说：「${c.lines[0]}」\n你也来测测👉 ${URL_}`;
+ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('文案已复制')).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('文案已复制')}catch(e){toast('复制失败')}a.remove()})}
+
+/* ===== SHARE IMAGE ===== */
+const FONT='"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei",sans-serif';
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function wrapT(c,t,mw){const o=[];let l='';for(const ch of t){if(c.measureText(l+ch).width>mw&&l){o.push(l);l=ch}else l+=ch}if(l)o.push(l);return o}
+function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
+async function buildShare(){
+ const c=res,W=1080,P=72,CW=W-P*2;const img=await loadImg(svgURL(catSVG(c.art)));
+ const cv=document.createElement('canvas'),x=cv.getContext('2d');
+ function draw(d){
+  const T=(t,tx,ty,s,col,wt,al)=>{x.font=`${wt||400} ${s}px ${FONT}`;x.fillStyle=col;x.textAlign=al||'left';x.textBaseline='top';if(d)x.fillText(t,tx,ty)};
+  const box=(y,h)=>{if(d){x.fillStyle='#fff';rr(x,P,y,CW,h,40);x.fill();x.strokeStyle='#F3D5C0';x.lineWidth=3;x.stroke()}};
+  if(d){const g=x.createLinearGradient(0,0,0,cv.height);g.addColorStop(0,'#FFF8F0');g.addColorStop(1,'#FFE6D3');x.fillStyle=g;x.fillRect(0,0,W,cv.height)}
+  let y=70;T('我最适合养的猫是',W/2,y,40,'#E8916B',500,'center');y+=80;
+  const h1=980;box(y,h1);if(d)x.drawImage(img,W/2-230,y+40,460,460);
+  let cy=y+520;T(pct+'%',W/2,cy,130,'#E8916B',700,'center');cy+=150;
+  T(c.name,W/2,cy,76,'#5A3A2E',700,'center');cy+=100;T(c.tagline,W/2,cy,36,'#8A6E62',400,'center');cy+=70;
+  x.font=`500 36px ${FONT}`;const tw=c.tags.map(t=>x.measureText(t).width+60),tot=tw.reduce((a,b)=>a+b,0)+20*(tw.length-1);let tx=(W-tot)/2;
+  c.tags.forEach((t,i)=>{if(d){x.fillStyle='#FFF0E4';rr(x,tx,cy,tw[i],68,34);x.fill()}T(t,tx+tw[i]/2,cy+15,36,'#C96F4A',500,'center');tx+=tw[i]+20});
+  y+=h1+36;
+  x.font=`400 36px ${FONT}`;const wl=wrapT(x,c.why,CW-96);const h2=120+wl.length*58+20;box(y,h2);
+  T('适合你的理由',P+48,y+44,42,'#5A3A2E',700);wl.forEach((l,i)=>T(l,P+48,y+112+i*58,36,'#8A6E62'));y+=h2+36;
+  const h3=130+BARS.length*80;box(y,h3);T('喵咪属性',P+48,y+44,42,'#5A3A2E',700);
+  BARS.forEach((b,i)=>{const by=y+124+i*80,bx=P+230,bw=CW-230-150,v=c.bars[i];T(b,P+48,by,36,'#5A3A2E',500);
+   if(d){x.fillStyle='#FDE6D6';rr(x,bx,by+8,bw,28,14);x.fill();x.fillStyle='#F0A07C';rr(x,bx,by+8,Math.max(28,bw*v/100),28,14);x.fill()}
+   T(lvl(v),P+CW-48,by,36,'#C96F4A',600,'right')});y+=h3+36;
+  x.font=`500 38px ${FONT}`;const L=c.lines.map(l=>wrapT(x,'“'+l+'”',CW-150));const h4=124+L.reduce((a,l)=>a+l.length*58+52,0);box(y,h4);
+  T('猫咪想对你说',P+48,y+44,42,'#5A3A2E',700);let ly=y+124;
+  L.forEach(ls=>{const h=ls.length*58+26;if(d){x.fillStyle='#FFF0E4';rr(x,P+48,ly,CW-96,h,24);x.fill()}ls.forEach((t,i)=>T(t,P+78,ly+14+i*58,38,'#5A3A2E',500));ly+=h+26});
+  y+=h4+56;T('你最适合养什么猫？',W/2,y,46,'#5A3A2E',700,'center');y+=70;T('打开链接，测测你的本命猫咪',W/2,y,32,'#8A6E62',400,'center');y+=54;T(URL_,W/2,y,30,'#E8916B',500,'center');y+=96;return y}
+ cv.width=W;cv.height=5000;const H=draw(false);cv.height=H;draw(true);return cv.toDataURL('image/png')}
+async function showShare(){try{const u=await buildShare();$('shareImg').src=u;window.__u=u;$('ov').classList.add('show')}catch(e){console.error(e);toast('生成失败，请截图分享')}}
+
+$('startCat').innerHTML=catSVG(START_CAT);
+$('btnStart').onclick=()=>{ans=[];qi=0;show('quiz');renderQ()};
+$('qback').onclick=()=>{if(qi>0){qi--;renderQ()}};
+$('btnRetry').onclick=()=>show('start');$('btnCopy').onclick=copyText;$('btnImg').onclick=showShare;
+$('btnClose').onclick=()=>$('ov').classList.remove('show');
+$('btnDl').onclick=()=>{const a=document.createElement('a');a.href=window.__u;a.download='本命猫咪-'+res.name+'.png';document.body.appendChild(a);a.click();a.remove()};
+</script>
+</body>
+</html>
