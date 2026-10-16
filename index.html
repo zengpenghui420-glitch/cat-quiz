@@ -112,7 +112,7 @@ h1 .hl{background:linear-gradient(transparent 60%,#FFD9A8 60%);padding:0 2px}
       <h3>输入测试验证码</h3>
       <input type="text" id="codeInput" placeholder="请输入验证码" autocomplete="off" autocapitalize="characters" maxlength="32">
       <button type="button" class="btn-primary" id="btnCodeOk">开始答题</button>
-      <p class="code-hint">购买后客服会发给你验证码</p>
+      <p class="code-hint">购买后客服会发给你验证码<br>每个码限用 3 次 · 同设备本页刷新内可重测</p>
     </div>
   </div>
 </div>
@@ -350,12 +350,20 @@ async function buildShare(){
  cv.width=W;cv.height=5000;const H=draw(false);cv.height=H;draw(true);return cv.toDataURL('image/png')}
 async function showShare(){try{const u=await buildShare();$('shareImg').src=u;window.__u=u;$('ov').classList.add('show')}catch(e){console.error(e);toast('生成失败，请截图分享')}}
 
-/* ===== ACCESS CODE ===== */
-const ACCESS_CODE='MIAO99';
+/* ===== ACCESS CODE (limited-use via MantleDB) ===== */
+const MANTLE_NS='catquiz-zph420-codes';
+const MANTLE_KEY='f60c0dae2088e5ccd5061a110aef0c0ff2a5b85f2658e78809c9123c9d82a22c';
+const MANTLE_BASE='https://mantledb.sh/v2/'+MANTLE_NS;
 const ACCESS_KEY='catquiz_unlocked';
+const ACCESS_CODE_KEY='catquiz_code';
 function isUnlocked(){try{return sessionStorage.getItem(ACCESS_KEY)==='1'}catch(e){return false}}
-function setUnlocked(){try{sessionStorage.setItem(ACCESS_KEY,'1')}catch(e){}}
-function normalizeCode(v){return String(v||'').trim().toUpperCase()}
+function setUnlocked(code){
+  try{
+    sessionStorage.setItem(ACCESS_KEY,'1');
+    if(code)sessionStorage.setItem(ACCESS_CODE_KEY,code);
+  }catch(e){}
+}
+function normalizeCode(v){return String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function openCodeModal(prefill){
   $('codeMask').classList.add('show');
   $('codeMask').setAttribute('aria-hidden','false');
@@ -368,15 +376,79 @@ function closeCodeModal(){
   $('codeMask').setAttribute('aria-hidden','true');
 }
 function startQuiz(){ans=[];qi=0;closeCodeModal();show('quiz');renderQ()}
-function tryUnlock(fromUrl){
-  const raw=$('codeInput').value;
-  if(normalizeCode(raw)===normalizeCode(ACCESS_CODE)){
-    setUnlocked();
-    startQuiz();
-    return true;
+function setCodeBusy(busy){
+  const btn=$('btnCodeOk');
+  btn.disabled=!!busy;
+  btn.textContent=busy?'验证中…':'开始答题';
+  btn.style.opacity=busy?'0.7':'1';
+}
+async function mantleGet(code){
+  const r=await fetch(MANTLE_BASE+'/c/'+encodeURIComponent(code),{
+    headers:{'X-Mantle-Key':MANTLE_KEY}
+  });
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error('net '+r.status);
+  return r.json();
+}
+async function mantleDecr(code){
+  const r=await fetch('https://mantledb.sh/v2/increment/'+MANTLE_NS+'/c/'+encodeURIComponent(code),{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Mantle-Key':MANTLE_KEY},
+    body:JSON.stringify({key:'remaining',by:-1})
+  });
+  if(!r.ok)throw new Error('net '+r.status);
+  return r.json();
+}
+async function mantleIncr(code){
+  try{
+    await fetch('https://mantledb.sh/v2/increment/'+MANTLE_NS+'/c/'+encodeURIComponent(code),{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Mantle-Key':MANTLE_KEY},
+      body:JSON.stringify({key:'remaining',by:1})
+    });
+  }catch(e){}
+}
+async function redeemCode(code){
+  const data=await mantleGet(code);
+  if(!data||typeof data.remaining!=='number'){
+    return {ok:false,reason:'invalid'};
   }
-  if(!fromUrl)toast('验证码不正确');
-  return false;
+  if(data.remaining<=0){
+    return {ok:false,reason:'exhausted'};
+  }
+  const after=await mantleDecr(code);
+  const left=typeof after.remaining==='number'?after.remaining:-1;
+  if(left<0){
+    await mantleIncr(code);
+    return {ok:false,reason:'exhausted'};
+  }
+  return {ok:true,remaining:left,max:data.max||3};
+}
+async function tryUnlock(fromUrl){
+  const code=normalizeCode($('codeInput').value);
+  if(!code){if(!fromUrl)toast('请输入验证码');return false}
+  setCodeBusy(true);
+  try{
+    const res=await redeemCode(code);
+    if(res.ok){
+      setUnlocked(code);
+      const left=res.remaining;
+      toast(left>0?('验证成功，还可以测 '+left+' 次'):'验证成功，这是本码最后一次');
+      startQuiz();
+      return true;
+    }
+    if(!fromUrl){
+      if(res.reason==='exhausted')toast('此验证码已用完（每个码限 3 次）');
+      else toast('验证码不正确');
+    }
+    return false;
+  }catch(e){
+    console.error(e);
+    if(!fromUrl)toast('网络异常，请稍后重试');
+    return false;
+  }finally{
+    setCodeBusy(false);
+  }
 }
 
 $('startCat').innerHTML=catSVG(START_CAT);
@@ -400,14 +472,8 @@ $('btnDl').onclick=()=>{const a=document.createElement('a');a.href=window.__u;a.
     if(p==null||p==='')return;
     if(isUnlocked())return;
     $('codeInput').value=p;
-    if(normalizeCode(p)===normalizeCode(ACCESS_CODE)){
-      setUnlocked();
-      // stay on start; next 开始测试 goes straight in — also auto-start for convenience
-      openCodeModal(p);
-      tryUnlock(true);
-    }else{
-      openCodeModal(p);
-    }
+    openCodeModal(p);
+    tryUnlock(true);
   }catch(e){}
 })();
 </script>
