@@ -67,6 +67,18 @@ h1 .hl{background:linear-gradient(transparent 60%,#FFD9A8 60%);padding:0 2px}
 .ovh{color:#fff;font-size:14px;margin:8px 0 12px}
 .ovb{display:flex;gap:10px;width:100%;max-width:400px;margin-top:12px}.ovb button{flex:1;padding:12px;border:none;border-radius:22px;font-size:15px;font-weight:600;font-family:inherit}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(90,58,46,.9);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}.toast.show{opacity:1}
+
+/* access code modal */
+.code-mask{position:fixed;inset:0;background:rgba(60,35,25,.45);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.code-mask.show{display:flex}
+.code-panel{width:100%;max-width:340px;background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px 20px 20px;box-shadow:0 12px 40px rgba(90,58,46,.18);text-align:center}
+.code-panel h3{font-size:18px;color:var(--dark);margin-bottom:16px;font-weight:700}
+.code-panel input{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:16px;font-family:inherit;color:var(--dark);background:var(--lighter);outline:none;text-align:center;letter-spacing:1px}
+.code-panel input:focus{border-color:var(--main);background:#fff}
+.code-panel .btn-primary{margin-top:14px;max-width:none}
+.code-hint{margin-top:12px;font-size:12px;color:var(--light);line-height:1.5}
+.code-close{position:absolute;top:10px;right:14px;background:none;border:none;font-size:22px;color:var(--light);cursor:pointer;line-height:1;font-family:inherit;padding:4px}
+.code-panel-wrap{position:relative;width:100%;max-width:340px}
 </style>
 </head>
 <body>
@@ -92,6 +104,18 @@ h1 .hl{background:linear-gradient(transparent 60%,#FFD9A8 60%);padding:0 2px}
   <div class="acts"><button class="bo" id="btnRetry">再测一次</button><button class="bo" id="btnCopy">复制文案</button><button class="bp" id="btnImg">生成分享图</button></div>
 </section>
 <div class="ov" id="ov"><div class="ovh">长按图片保存，或点击下载</div><img id="shareImg" alt="分享图"><div class="ovb"><button id="btnDl" style="background:#fff;color:var(--deep)">下载</button><button id="btnClose" style="background:rgba(255,255,255,.18);color:#fff">关闭</button></div></div>
+
+<div class="code-mask" id="codeMask" aria-hidden="true">
+  <div class="code-panel-wrap">
+    <div class="code-panel">
+      <button type="button" class="code-close" id="codeClose" aria-label="关闭">×</button>
+      <h3>输入测试验证码</h3>
+      <input type="text" id="codeInput" placeholder="请输入验证码" autocomplete="off" autocapitalize="characters" maxlength="32">
+      <button type="button" class="btn-primary" id="btnCodeOk">开始答题</button>
+      <p class="code-hint">购买后客服会发给你验证码</p>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 /* ===== CAT SVG ===== */
@@ -326,12 +350,66 @@ async function buildShare(){
  cv.width=W;cv.height=5000;const H=draw(false);cv.height=H;draw(true);return cv.toDataURL('image/png')}
 async function showShare(){try{const u=await buildShare();$('shareImg').src=u;window.__u=u;$('ov').classList.add('show')}catch(e){console.error(e);toast('生成失败，请截图分享')}}
 
+/* ===== ACCESS CODE ===== */
+const ACCESS_CODE='MIAO99';
+const ACCESS_KEY='catquiz_unlocked';
+function isUnlocked(){try{return sessionStorage.getItem(ACCESS_KEY)==='1'}catch(e){return false}}
+function setUnlocked(){try{sessionStorage.setItem(ACCESS_KEY,'1')}catch(e){}}
+function normalizeCode(v){return String(v||'').trim().toUpperCase()}
+function openCodeModal(prefill){
+  $('codeMask').classList.add('show');
+  $('codeMask').setAttribute('aria-hidden','false');
+  const inp=$('codeInput');
+  if(prefill!=null)inp.value=prefill;else if(!inp.value)inp.value='';
+  setTimeout(()=>inp.focus(),50);
+}
+function closeCodeModal(){
+  $('codeMask').classList.remove('show');
+  $('codeMask').setAttribute('aria-hidden','true');
+}
+function startQuiz(){ans=[];qi=0;closeCodeModal();show('quiz');renderQ()}
+function tryUnlock(fromUrl){
+  const raw=$('codeInput').value;
+  if(normalizeCode(raw)===normalizeCode(ACCESS_CODE)){
+    setUnlocked();
+    startQuiz();
+    return true;
+  }
+  if(!fromUrl)toast('验证码不正确');
+  return false;
+}
+
 $('startCat').innerHTML=catSVG(START_CAT);
-$('btnStart').onclick=()=>{ans=[];qi=0;show('quiz');renderQ()};
+$('btnStart').onclick=()=>{
+  if(isUnlocked()){startQuiz();return}
+  openCodeModal();
+};
+$('btnCodeOk').onclick=()=>tryUnlock(false);
+$('codeInput').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(false)});
+$('codeClose').onclick=closeCodeModal;
+$('codeMask').addEventListener('click',e=>{if(e.target===$('codeMask'))closeCodeModal()});
 $('qback').onclick=()=>{if(qi>0){qi--;renderQ()}};
 $('btnRetry').onclick=()=>show('start');$('btnCopy').onclick=copyText;$('btnImg').onclick=showShare;
 $('btnClose').onclick=()=>$('ov').classList.remove('show');
 $('btnDl').onclick=()=>{const a=document.createElement('a');a.href=window.__u;a.download='本命猫咪-'+res.name+'.png';document.body.appendChild(a);a.click();a.remove()};
+
+/* URL ?code=XXX auto-fill / auto-submit */
+(function(){
+  try{
+    const p=new URLSearchParams(location.search).get('code');
+    if(p==null||p==='')return;
+    if(isUnlocked())return;
+    $('codeInput').value=p;
+    if(normalizeCode(p)===normalizeCode(ACCESS_CODE)){
+      setUnlocked();
+      // stay on start; next 开始测试 goes straight in — also auto-start for convenience
+      openCodeModal(p);
+      tryUnlock(true);
+    }else{
+      openCodeModal(p);
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
